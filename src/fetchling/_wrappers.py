@@ -36,7 +36,7 @@ class ContentWrapper(metaclass=ABCMeta):
 
 
 class JSON(ContentWrapper):
-    __slots__ = ("value", "pretty", "default")
+    __slots__ = ("default", "pretty", "value")
 
     def __init__(
         self,
@@ -83,7 +83,7 @@ class JSON(ContentWrapper):
 
 
 class CBOR(ContentWrapper):
-    __slots__ = ("value", "kwargs")
+    __slots__ = ("kwargs", "value")
 
     def __init__(
         self,

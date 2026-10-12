@@ -423,37 +423,37 @@ class TestWebSocket:
             assert exc_info.value.body is None
 
     async def test_server_normal_close(self, http_client: HTTPClient) -> None:
-        async with http_client:
-            async with http_client.connect_ws(
-                "/ws", params={"close_code": "1000"}
-            ) as ws:
-                for _ in range(2):
-                    with pytest.raises(WebSocketConnectionEnded):
-                        await ws.receive()
+        async with (
+            http_client,
+            http_client.connect_ws("/ws", params={"close_code": "1000"}) as ws,
+        ):
+            for _ in range(2):
+                with pytest.raises(WebSocketConnectionEnded):
+                    await ws.receive()
 
-                with pytest.raises(WebSocketConnectionBroken) as exc_info:
-                    await ws.send(b"foo")
+            with pytest.raises(WebSocketConnectionBroken) as exc_info:
+                await ws.send(b"foo")
 
-                assert exc_info.value.code == 1000
-                assert exc_info.value.reason is None
+            assert exc_info.value.code == 1000
+            assert exc_info.value.reason is None
 
     async def test_server_abnormal_close(self, http_client: HTTPClient) -> None:
-        async with http_client:
-            async with http_client.connect_ws(
-                "/ws", params={"close_code": "1008"}
-            ) as ws:
-                for _ in range(2):
-                    with pytest.raises(WebSocketConnectionBroken) as exc_info:
-                        await ws.receive()
-
-                    assert exc_info.value.code == 1008
-                    assert exc_info.value.reason == "Policy violation"
-
+        async with (
+            http_client,
+            http_client.connect_ws("/ws", params={"close_code": "1008"}) as ws,
+        ):
+            for _ in range(2):
                 with pytest.raises(WebSocketConnectionBroken) as exc_info:
-                    await ws.send(b"foo")
+                    await ws.receive()
 
                 assert exc_info.value.code == 1008
                 assert exc_info.value.reason == "Policy violation"
+
+            with pytest.raises(WebSocketConnectionBroken) as exc_info:
+                await ws.send(b"foo")
+
+            assert exc_info.value.code == 1008
+            assert exc_info.value.reason == "Policy violation"
 
 
 async def test_sse(http_client: HTTPClient) -> None:

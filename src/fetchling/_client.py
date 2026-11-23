@@ -497,11 +497,13 @@ class HTTPClient(AsyncContextManagerMixin):
         urlobj, headers_dict, pool = self._prepare_request(url, None, headers)
 
         # Acquire a connection from the pool, send the request and wait for a response
-        async with pool.acquire() as conn:
-            async with await conn.connect(
+        async with (
+            pool.acquire() as conn,
+            await conn.connect(
                 URL.build(host=host, port=port), headers=headers_dict
-            ) as stream:
-                yield stream
+            ) as stream,
+        ):
+            yield stream
 
     @asynccontextmanager
     async def connect_ws(
@@ -516,14 +518,16 @@ class HTTPClient(AsyncContextManagerMixin):
         urlobj, headers, pool = self._prepare_request(url, params, headers)
 
         # Acquire a connection from the pool and do the WebSockets handshake
-        async with pool.acquire() as conn:
-            async with await conn.connect_ws(
+        async with (
+            pool.acquire() as conn,
+            await conn.connect_ws(
                 URL.build(path=urlobj.path, query=urlobj.query),
                 headers,
                 subprotocols,
                 list(extensions),
-            ) as ws_connection:
-                yield ws_connection
+            ) as ws_connection,
+        ):
+            yield ws_connection
 
     @asynccontextmanager
     async def connect_sse(
